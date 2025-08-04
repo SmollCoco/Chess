@@ -58,12 +58,12 @@ Chess/
 1. **Clone/Download** the project
 2. **Follow the technical guide** in `TECHNICAL_GUIDE.md` to implement the game
 3. **Compile** the Java files:
-    ```bash
-    javac -d bin src/chess/*.java src/chess/*/*.java
+    ```powershell
+    cd .\src\chess\; javac -cp ./ Main.java
     ```
 4. **Run** the game:
     ```bash
-    java -cp bin chess.Main
+    java .\Main.java
     ```
 
 ## Development Phases
