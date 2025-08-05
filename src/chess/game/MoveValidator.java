@@ -1,5 +1,6 @@
 package game;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import board.ChessBoard;
@@ -87,5 +88,31 @@ public class MoveValidator {
         boardCopy.movePiece(from, to);
         // Check if king would be in check after this move
         return isKingInCheck(boardCopy, color);
+    }
+    
+    /**
+     * Get all legal moves for a piece at the given position
+     * Returns only moves that don't expose the king to check
+     */
+    public static List<Position> getLegalMoves(ChessBoard board, Position from, PieceColor player) {
+        List<Position> legalMoves = new ArrayList<>();
+        
+        // Get the piece at the from position
+        Piece piece = board.getPiece(from);
+        if (piece == null || piece.getColor() != player) {
+            return legalMoves; // Empty list if no piece or wrong color
+        }
+        
+        // Get all possible moves for this piece
+        List<Position> possibleMoves = piece.getPossibleMoves(board);
+        
+        // Filter out moves that would expose the king to check
+        for (Position to : possibleMoves) {
+            if (!wouldMoveExposeKing(board, from, to, player)) {
+                legalMoves.add(to);
+            }
+        }
+        
+        return legalMoves;
     }
 }

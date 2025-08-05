@@ -149,6 +149,11 @@ public class Queen extends Piece {
     }
 
     @Override
+    public String getPieceName() {
+        return "queen";
+    }
+
+    @Override
     public Queen copy() {
         Queen newQueen = new Queen(this.color, new Position(this.pos.getRow(), this.pos.getCol()));
         newQueen.hasMoved = this.hasMoved;

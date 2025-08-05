@@ -20,6 +20,8 @@ public abstract class Piece {
 
     public abstract String getSymbol();
 
+    public abstract String getPieceName();
+
     public abstract Piece copy();
 
     public boolean isOpponent(Piece other) {

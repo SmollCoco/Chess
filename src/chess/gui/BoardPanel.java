@@ -4,25 +4,49 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.util.ArrayList;
+import java.util.List;
 
 import game.ChessGame;
+import game.MoveValidator;
 import board.Position;
 
 public class BoardPanel extends JPanel {
     private ChessGame chessGame;
     private SquarePanel[][] squarePanels;
     private Position selectedPosition;
+    private List<Position> legalMoves;
     
     public BoardPanel(ChessGame chessGame) {
         this.chessGame = chessGame;
         this.selectedPosition = null;
+        this.legalMoves = new ArrayList<>();
         
         // Set up the panel
         setLayout(new GridLayout(8, 8));
-        setPreferredSize(new Dimension(640, 640)); // 80x80 per square
+        setPreferredSize(new Dimension(800, 800)); // Increased from 640x640 to 800x800
         
         // Create the square panels
         createSquarePanels();
+    }
+    
+    @Override
+    public Dimension getPreferredSize() {
+        // Always return a square dimension with smaller margin
+        Dimension parentSize = getParent() != null ? getParent().getSize() : new Dimension(800, 800);
+        int size = Math.min(parentSize.width - 10, parentSize.height - 10); // Reduced margin from 40 to 10
+        size = Math.max(size, 400); // Minimum size
+        return new Dimension(size, size);
+    }
+    
+    @Override
+    public Dimension getMinimumSize() {
+        return new Dimension(400, 400);
+    }
+    
+    @Override
+    public Dimension getMaximumSize() {
+        return getPreferredSize();
     }
     
     private void createSquarePanels() {
@@ -70,6 +94,11 @@ public class BoardPanel extends JPanel {
             // Select this piece
             selectedPosition = position;
             highlightSquare(position, true);
+            
+            // Get and highlight legal moves for this piece
+            legalMoves = MoveValidator.getLegalMoves(chessGame.getBoard(), position, 
+                chessGame.getGameState().getCurrentPlayer());
+            highlightLegalMoves(true);
         }
         // Ignore clicks on empty squares or opponent pieces
     }
@@ -104,7 +133,15 @@ public class BoardPanel extends JPanel {
     private void deselectPiece() {
         if (selectedPosition != null) {
             highlightSquare(selectedPosition, false);
+            highlightLegalMoves(false);
             selectedPosition = null;
+            legalMoves.clear();
+        }
+    }
+    
+    private void highlightLegalMoves(boolean highlight) {
+        for (Position move : legalMoves) {
+            squarePanels[move.getRow()][move.getCol()].setLegalMoveTarget(highlight);
         }
     }
     
@@ -118,9 +155,11 @@ public class BoardPanel extends JPanel {
             for (int col = 0; col < 8; col++) {
                 squarePanels[row][col].setSquare(chessGame.getBoard().getSquare(row, col));
                 squarePanels[row][col].setHighlighted(false); // Clear highlights
+                squarePanels[row][col].setLegalMoveTarget(false); // Clear legal move indicators
             }
         }
         selectedPosition = null;
+        legalMoves.clear();
         repaint();
     }
 }

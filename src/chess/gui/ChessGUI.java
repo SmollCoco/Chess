@@ -16,10 +16,14 @@ public class ChessGUI extends JFrame {
         // Initialize the chess game
         this.chessGame = new ChessGame();
         // Set up the main window
-        setTitle("Chess Game");
+        setTitle("Chess Game - Professional Edition");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setResizable(false);
+        setResizable(true); // Allow resizing
         setLayout(new BorderLayout());
+        
+        // Set minimum size
+        setMinimumSize(new Dimension(1100, 900));
+        
         // Create and add components
         createMenuBar();
         createPanels();
@@ -32,10 +36,15 @@ public class ChessGUI extends JFrame {
     
     private void createMenuBar() {
         JMenuBar menuBar = new JMenuBar();
-        // Create Game menu
+        menuBar.setBackground(new Color(240, 240, 245));
+        
+        // Create Game menu with improved styling
         JMenu gameMenu = new JMenu("Game");
+        gameMenu.setFont(new Font("Arial", Font.BOLD, 14));
+        
         // New Game menu item
         JMenuItem newGameItem = new JMenuItem("New Game");
+        newGameItem.setFont(new Font("Arial", Font.PLAIN, 12));
         newGameItem.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -44,6 +53,7 @@ public class ChessGUI extends JFrame {
         });
         // Exit menu item
         JMenuItem exitItem = new JMenuItem("Exit");
+        exitItem.setFont(new Font("Arial", Font.PLAIN, 12));
         exitItem.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -61,9 +71,27 @@ public class ChessGUI extends JFrame {
     }
     
     private void createPanels() {
-        // Create board panel (center)
+        // Create board panel (center) with reduced padding and centering
         boardPanel = new BoardPanel(chessGame);
-        add(boardPanel, BorderLayout.CENTER);
+        
+        // Create a container that centers the board and maintains square shape
+        JPanel boardContainer = new JPanel();
+        boardContainer.setLayout(new BoxLayout(boardContainer, BoxLayout.Y_AXIS));
+        boardContainer.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10)); // Reduced from 20 to 10
+        
+        // Add vertical glue to center the board vertically
+        boardContainer.add(Box.createVerticalGlue());
+        
+        // Create a panel to center the board horizontally
+        JPanel centerPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 0)); // Remove gaps
+        centerPanel.add(boardPanel);
+        boardContainer.add(centerPanel);
+        
+        // Add vertical glue to center the board vertically
+        boardContainer.add(Box.createVerticalGlue());
+        
+        add(boardContainer, BorderLayout.CENTER);
+        
         // Create game info panel (east)
         gameInfoPanel = new GameInfoPanel(chessGame);
         add(gameInfoPanel, BorderLayout.EAST);

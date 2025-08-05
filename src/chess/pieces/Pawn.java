@@ -55,6 +55,11 @@ public class Pawn extends Piece {
     }
 
     @Override
+    public String getPieceName() {
+        return "pawn";
+    }
+
+    @Override
     public Pawn copy() {
         Pawn newPawn = new Pawn(this.color, new Position(this.pos.getRow(), this.pos.getCol()));
         newPawn.hasMoved = this.hasMoved;

@@ -47,6 +47,11 @@ public class King extends Piece {
     }
 
     @Override
+    public String getPieceName() {
+        return "king";
+    }
+
+    @Override
     public King copy() {
         King newKing = new King(this.color, new Position(this.pos.getRow(), this.pos.getCol()));
         newKing.hasMoved = this.hasMoved;

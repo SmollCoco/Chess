@@ -9,18 +9,43 @@ import pieces.Piece;
 public class SquarePanel extends JPanel {
     private Square square;
     private boolean isHighlighted;
+    private boolean isLegalMoveTarget;
     
     // Colors for chess board
     private static final Color LIGHT_COLOR = new Color(240, 217, 181);
     private static final Color DARK_COLOR = new Color(181, 136, 99);
     private static final Color HIGHLIGHT_COLOR = new Color(255, 255, 0, 128); // Semi-transparent yellow
+    private static final Color LEGAL_MOVE_COLOR = new Color(0, 255, 0, 100); // Semi-transparent green
     
     public SquarePanel(Square square) {
         this.square = square;
         this.isHighlighted = false;
+        this.isLegalMoveTarget = false;
         
-        setPreferredSize(new Dimension(80, 80));
+        setPreferredSize(new Dimension(100, 100)); // Increased from 80x80 to 100x100
         setOpaque(true);
+    }
+    
+    @Override
+    public Dimension getPreferredSize() {
+        // Ensure square stays square even when resized
+        if (getParent() != null) {
+            Dimension parentSize = getParent().getSize();
+            int size = Math.min(parentSize.width / 8, parentSize.height / 8);
+            size = Math.max(size, 50); // Minimum size
+            return new Dimension(size, size);
+        }
+        return new Dimension(100, 100);
+    }
+    
+    @Override
+    public Dimension getMinimumSize() {
+        return new Dimension(50, 50);
+    }
+    
+    @Override
+    public Dimension getMaximumSize() {
+        return getPreferredSize();
     }
     
     public void setSquare(Square square) {
@@ -30,6 +55,11 @@ public class SquarePanel extends JPanel {
     
     public void setHighlighted(boolean highlighted) {
         this.isHighlighted = highlighted;
+        repaint();
+    }
+    
+    public void setLegalMoveTarget(boolean isTarget) {
+        this.isLegalMoveTarget = isTarget;
         repaint();
     }
     
@@ -53,6 +83,28 @@ public class SquarePanel extends JPanel {
             g2d.fillRect(0, 0, getWidth(), getHeight());
         }
         
+        // Draw legal move indicator if this square is a legal move target
+        if (isLegalMoveTarget) {
+            g2d.setColor(LEGAL_MOVE_COLOR);
+            if (square.isEmpty()) {
+                // Draw a filled circle in the center for empty squares
+                int circleSize = 25; // Increased size
+                int x = (getWidth() - circleSize) / 2;
+                int y = (getHeight() - circleSize) / 2;
+                g2d.fillOval(x, y, circleSize, circleSize);
+                
+                // Add a darker border to the circle
+                g2d.setColor(new Color(0, 200, 0, 150));
+                g2d.setStroke(new BasicStroke(2));
+                g2d.drawOval(x, y, circleSize, circleSize);
+            } else {
+                // Draw a thicker border around the square if it contains an opponent piece
+                g2d.setColor(new Color(255, 100, 100, 180)); // Red for capture
+                g2d.setStroke(new BasicStroke(6));
+                g2d.drawRect(3, 3, getWidth() - 6, getHeight() - 6);
+            }
+        }
+        
         // Draw piece symbol if square is occupied
         Piece piece = square.getPiece();
         if (piece != null) {
@@ -63,14 +115,26 @@ public class SquarePanel extends JPanel {
     }
     
     private void drawPiece(Graphics2D g2d, Piece piece) {
-        // Set font for piece symbols
-        Font pieceFont = new Font("Serif", Font.PLAIN, 48);
+        // Try to load piece image first
+        ImageIcon pieceImage = ImageLoader.getPieceImage(piece.getPieceName(), piece.getColor());
+        if (pieceImage != null) {
+            // Draw the image centered in the square
+            int x = (getWidth() - pieceImage.getIconWidth()) / 2;
+            int y = (getHeight() - pieceImage.getIconHeight()) / 2;
+            g2d.drawImage(pieceImage.getImage(), x, y, this);
+        } else {
+            // Fall back to text symbols
+            drawPieceSymbol(g2d, piece);
+        }
+    }
+    
+    private void drawPieceSymbol(Graphics2D g2d, Piece piece) {
+        // Set improved font for piece symbols
+        Font pieceFont = new Font("DejaVu Sans", Font.BOLD, 60); // Increased size and improved font
         g2d.setFont(pieceFont);
         
-        // Set color for piece text (high contrast)
-        g2d.setColor(Color.BLACK);
-        
-        // Get piece symbol
+        // Set color for piece text with better contrast and shadows
+        g2d.setColor(Color.WHITE); // White outline/shadow
         String symbol = piece.getSymbol();
         
         // Center the text in the square
@@ -81,6 +145,15 @@ public class SquarePanel extends JPanel {
         int x = (getWidth() - textWidth) / 2;
         int y = (getHeight() + textHeight) / 2 - fm.getDescent();
         
+        // Draw shadow/outline effect
+        g2d.drawString(symbol, x + 2, y + 2); // Shadow
+        g2d.drawString(symbol, x - 1, y - 1); // Outline
+        g2d.drawString(symbol, x + 1, y - 1); // Outline
+        g2d.drawString(symbol, x - 1, y + 1); // Outline
+        g2d.drawString(symbol, x + 1, y + 1); // Outline
+        
+        // Draw the main text in black
+        g2d.setColor(Color.BLACK);
         g2d.drawString(symbol, x, y);
     }
 }
