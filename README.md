@@ -1,16 +1,22 @@
-# Java Chess Game with GUI
 
-A fully-featured chess game implementation in Java using Swing for the graphical user interface.
+# Java Chess Game with Modern GUI
+
+A fully-featured chess game in Java using Swing, with a modern, resizable interface and visual move highlighting.
+
 
 ## Features
 
 -   Complete chess game with all standard rules
--   Intuitive graphical user interface
+-   Modern, resizable graphical user interface
 -   Move validation and legal move detection
 -   Check and checkmate detection
--   Visual feedback for piece selection and valid moves
+-   Visual feedback for piece selection and all legal moves (highlighted on board)
 -   Turn-based gameplay for two players
 -   Game state management
+-   Board always stays perfectly square, even when window is resized
+-   Improved piece and label styling for a professional look
+-   Chess piece icons (PNG images) with automatic fallback to Unicode symbols
+-   Smart image loading and caching system
 
 ## Requirements
 
@@ -45,21 +51,39 @@ Chess/
 │           ├── ChessGUI.java         # Main GUI window
 │           ├── BoardPanel.java       # Chess board visual component
 │           ├── SquarePanel.java      # Individual square component
-│           └── GameInfoPanel.java    # Game status display
+│           ├── GameInfoPanel.java    # Game status display
+│           └── ImageLoader.java      # Chess piece image loader
+│       └── resources/
+│           └── images/               # Chess piece icons (PNG format)
+│               ├── white_king.png    # White king piece icon
+│               ├── white_queen.png   # White queen piece icon
+│               ├── white_rook.png    # White rook piece icon
+│               ├── white_bishop.png  # White bishop piece icon
+│               ├── white_knight.png  # White knight piece icon
+│               ├── white_pawn.png    # White pawn piece icon
+│               ├── black_king.png    # Black king piece icon
+│               ├── black_queen.png   # Black queen piece icon
+│               ├── black_rook.png    # Black rook piece icon
+│               ├── black_bishop.png  # Black bishop piece icon
+│               ├── black_knight.png  # Black knight piece icon
+│               └── black_pawn.png    # Black pawn piece icon
 ├── .gitignore
 └── README.md
 ```
 
+
 ## Getting Started
 
 1. **Clone/Download** the project
-2. **Compile** the Java files:
+2. **Compile** all Java files (from the project root):
     ```powershell
-    cd .\src\chess\; javac -cp ./ Main.java
+    cd .\src
+    javac -d ../bin chess\*.java chess\*\*.java
     ```
 3. **Run** the game:
     ```powershell
-    java .\Main.java
+    cd ..
+    java -cp bin chess.Main
     ```
 
 ## Development Phases
@@ -74,13 +98,19 @@ The implementation is broken down into manageable phases:
 6. **Phase 6**: Game flow and user interaction
 7. **Phase 7**: Testing and refinement
 
+
 ## Technical Highlights
 
 -   **Object-Oriented Design**: Clean separation of concerns with distinct packages
 -   **MVC Pattern**: Separation of game logic, data model, and user interface
 -   **Polymorphism**: Abstract piece class with concrete implementations
 -   **Event-Driven GUI**: Responsive Swing-based interface
+-   **Visual Move Highlighting**: All legal moves for a selected piece are shown on the board
+-   **Resizable, Modern UI**: Board and info panel scale with the window, always keeping the board square
 -   **Robust Move Validation**: Comprehensive rule checking including special moves
+-   **Smart Image System**: Automatic loading of chess piece PNG icons with graceful fallback to Unicode symbols
+-   **Performance Optimized**: Image caching and efficient board rendering
+
 
 ## License
 
