@@ -46,9 +46,6 @@ Chess/
 │           ├── BoardPanel.java       # Chess board visual component
 │           ├── SquarePanel.java      # Individual square component
 │           └── GameInfoPanel.java    # Game status display
-├── resources/
-│   └── images/                       # Chess piece images (optional)
-├── TECHNICAL_GUIDE.md               # Detailed implementation guide
 ├── .gitignore
 └── README.md
 ```
@@ -56,14 +53,13 @@ Chess/
 ## Getting Started
 
 1. **Clone/Download** the project
-2. **Follow the technical guide** in `TECHNICAL_GUIDE.md` to implement the game
-3. **Compile** the Java files:
-    ```bash
-    javac -d bin src/chess/*.java src/chess/*/*.java
+2. **Compile** the Java files:
+    ```powershell
+    cd .\src\chess\; javac -cp ./ Main.java
     ```
-4. **Run** the game:
-    ```bash
-    java -cp bin chess.Main
+3. **Run** the game:
+    ```powershell
+    java .\Main.java
     ```
 
 ## Development Phases
