@@ -92,7 +92,6 @@ Chess/
 
    **Alternative (Simpler)**: Use the provided PowerShell script:
     ```powershell
-    cd .\src\chess
     .\run.ps1
     ```
 
