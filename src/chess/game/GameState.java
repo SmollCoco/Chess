@@ -1,6 +1,7 @@
 package game;
 
 import pieces.PieceColor;
+import board.Position;
 
 public class GameState {
     public enum Status {
@@ -10,11 +11,15 @@ public class GameState {
     private PieceColor currPlayer;
     private Status gameStatus;
     private int moveCount;
+    private Position lastMoveFrom;
+    private Position lastMoveTo;
 
     public GameState() {
         this.currPlayer = PieceColor.WHITE;
         this.gameStatus = Status.PLAYING;
         moveCount = 0;
+        this.lastMoveFrom = null;
+        this.lastMoveTo = null;
     }
 
     public PieceColor getCurrentPlayer() {
@@ -36,6 +41,19 @@ public class GameState {
     public void nextTurn() {
         this.currPlayer = currPlayer.opposite();
         ++this.moveCount;
+    }
+
+    public void setLastMove(Position from, Position to) {
+        this.lastMoveFrom = from;
+        this.lastMoveTo = to;
+    }
+
+    public Position getLastMoveFrom() {
+        return this.lastMoveFrom;
+    }
+
+    public Position getLastMoveTo() {
+        return this.lastMoveTo;
     }
 
     public boolean isGameOver() {

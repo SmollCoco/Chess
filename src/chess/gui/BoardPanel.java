@@ -97,7 +97,7 @@ public class BoardPanel extends JPanel {
             
             // Get and highlight legal moves for this piece
             legalMoves = MoveValidator.getLegalMoves(chessGame.getBoard(), position, 
-                chessGame.getGameState().getCurrentPlayer());
+                chessGame.getGameState().getCurrentPlayer(), chessGame.getGameState());
             highlightLegalMoves(true);
         }
         // Ignore clicks on empty squares or opponent pieces

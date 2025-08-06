@@ -100,7 +100,7 @@ public class Bishop extends Piece {
     @Override
     public Bishop copy() {
         Bishop newBishop = new Bishop(this.color, new Position(this.pos.getRow(), this.pos.getCol()));
-        newBishop.hasMoved = this.hasMoved;
+        newBishop.setHasMoved(this.hasMoved);
         return newBishop;
     }
 }

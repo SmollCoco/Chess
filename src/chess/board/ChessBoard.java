@@ -93,6 +93,39 @@ public class ChessBoard {
         }
     }
 
+    /**
+     * Performs castling move - moves both king and rook
+     */
+    public void performCastling(Position kingFrom, Position kingTo) {
+        Piece king = getPiece(kingFrom);
+        if (king == null || !(king instanceof King)) {
+            return;
+        }
+
+        // Determine if it's kingside or queenside castling
+        boolean isKingside = kingTo.getCol() > kingFrom.getCol();
+        int rookFromCol = isKingside ? 7 : 0;
+        int rookToCol = isKingside ? kingTo.getCol() - 1 : kingTo.getCol() + 1;
+        
+        Position rookFrom = new Position(kingFrom.getRow(), rookFromCol);
+        Position rookTo = new Position(kingFrom.getRow(), rookToCol);
+        
+        // Move king
+        movePiece(kingFrom, kingTo);
+        // Move rook
+        movePiece(rookFrom, rookTo);
+    }
+
+    /**
+     * Performs en passant capture - removes the captured pawn
+     */
+    public void performEnPassant(Position pawnFrom, Position pawnTo, Position capturedPawnPos) {
+        // Move the attacking pawn
+        movePiece(pawnFrom, pawnTo);
+        // Remove the captured pawn
+        this.board[capturedPawnPos.getRow()][capturedPawnPos.getCol()].clear();
+    }
+
     public List<Piece> getAllPieces(PieceColor color) {
         List<Piece> res = new ArrayList<Piece>();
         for (int row = 0; row < 8; ++row) {
@@ -137,6 +170,45 @@ public class ChessBoard {
             }
         }
         return res;
+    }
+
+    /**
+     * Promotes a pawn to the specified piece type
+     */
+    public void promotePawn(Position pawnPos, Class<? extends Piece> pieceType) {
+        Piece pawn = getPiece(pawnPos);
+        if (pawn == null || !(pawn instanceof Pawn)) {
+            return;
+        }
+
+        try {
+            // Create new piece of the specified type
+            Piece newPiece = null;
+            PieceColor color = pawn.getColor();
+            
+            if (pieceType == Queen.class) {
+                newPiece = new Queen(color, pawnPos);
+            } else if (pieceType == Rook.class) {
+                newPiece = new Rook(color, pawnPos);
+            } else if (pieceType == Bishop.class) {
+                newPiece = new Bishop(color, pawnPos);
+            } else if (pieceType == Knight.class) {
+                newPiece = new Knight(color, pawnPos);
+            } else {
+                // Default to Queen if invalid piece type
+                newPiece = new Queen(color, pawnPos);
+            }
+            
+            // Replace the pawn with the new piece
+            newPiece.setHasMoved(true); // Mark as moved since it's a promotion
+            this.board[pawnPos.getRow()][pawnPos.getCol()].setPiece(newPiece);
+            
+        } catch (Exception e) {
+            // If anything goes wrong, default to Queen
+            Queen queen = new Queen(pawn.getColor(), pawnPos);
+            queen.setHasMoved(true);
+            this.board[pawnPos.getRow()][pawnPos.getCol()].setPiece(queen);
+        }
     }
 
     public boolean isValidPosition(int row, int col) {

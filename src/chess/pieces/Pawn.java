@@ -5,6 +5,7 @@ import java.util.List;
 
 import board.Position;
 import board.ChessBoard;
+import game.GameState;
 
 public class Pawn extends Piece {
     public Pawn(PieceColor color, Position pos) {
@@ -49,6 +50,68 @@ public class Pawn extends Piece {
         return res;
     }
 
+    /**
+     * Get possible moves including en passant for this pawn
+     */
+    public List<Position> getPossibleMoves(ChessBoard board, GameState gameState) {
+        List<Position> res = getPossibleMoves(board);
+        
+        // Add en passant moves
+        res.addAll(getEnPassantMoves(board, gameState));
+        
+        return res;
+    }
+
+    /**
+     * Get possible en passant capture moves
+     */
+    public List<Position> getEnPassantMoves(ChessBoard board, GameState gameState) {
+        List<Position> enPassantMoves = new ArrayList<>();
+        
+        // En passant is only possible for pawns on the 5th rank (for white) or 4th rank (for black)
+        int expectedRow = this.color == PieceColor.WHITE ? 3 : 4;
+        if (this.pos.getRow() != expectedRow) {
+            return enPassantMoves;
+        }
+        
+        // Check if the last move was a pawn moving two squares
+        Position lastMoveFrom = gameState.getLastMoveFrom();
+        Position lastMoveTo = gameState.getLastMoveTo();
+        
+        if (lastMoveFrom == null || lastMoveTo == null) {
+            return enPassantMoves;
+        }
+        
+        // The last moved piece must be a pawn
+        Piece lastMovedPiece = board.getPiece(lastMoveTo);
+        if (lastMovedPiece == null || !(lastMovedPiece instanceof Pawn)) {
+            return enPassantMoves;
+        }
+        
+        // The pawn must have moved two squares
+        if (Math.abs(lastMoveFrom.getRow() - lastMoveTo.getRow()) != 2) {
+            return enPassantMoves;
+        }
+        
+        // The last moved pawn must be adjacent to this pawn
+        if (lastMoveTo.getRow() != this.pos.getRow() || 
+            Math.abs(lastMoveTo.getCol() - this.pos.getCol()) != 1) {
+            return enPassantMoves;
+        }
+        
+        // The last moved pawn must be of opposite color
+        if (lastMovedPiece.getColor() == this.color) {
+            return enPassantMoves;
+        }
+        
+        // Add the en passant capture move
+        int deltaRow = this.color == PieceColor.WHITE ? -1 : 1;
+        Position enPassantTarget = new Position(this.pos.getRow() + deltaRow, lastMoveTo.getCol());
+        enPassantMoves.add(enPassantTarget);
+        
+        return enPassantMoves;
+    }
+
     @Override
     public String getSymbol() {
         return this.color == PieceColor.WHITE ? "♙" : "♟";
@@ -62,7 +125,15 @@ public class Pawn extends Piece {
     @Override
     public Pawn copy() {
         Pawn newPawn = new Pawn(this.color, new Position(this.pos.getRow(), this.pos.getCol()));
-        newPawn.hasMoved = this.hasMoved;
+        newPawn.setHasMoved(this.hasMoved);
         return newPawn;
+    }
+
+    /**
+     * Check if this pawn can be promoted (reached the opposite end of the board)
+     */
+    public boolean canPromote() {
+        int promotionRow = this.color == PieceColor.WHITE ? 0 : 7;
+        return this.pos.getRow() == promotionRow;
     }
 }

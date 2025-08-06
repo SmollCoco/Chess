@@ -38,7 +38,80 @@ public class King extends Piece {
             }
         }
 
+        // Add castling moves
+        res.addAll(getCastlingMoves(board));
+
         return res;
+    }
+
+    /**
+     * Get possible castling moves for this king
+     */
+    public List<Position> getCastlingMoves(ChessBoard board) {
+        List<Position> castlingMoves = new ArrayList<>();
+        
+        // Can't castle if king has moved
+        if (this.hasMoved) {
+            return castlingMoves;
+        }
+        
+        int row = this.pos.getRow();
+        
+        // Check kingside castling (short castling)
+        if (canCastleKingside(board)) {
+            castlingMoves.add(new Position(row, 6));
+        }
+        
+        // Check queenside castling (long castling)
+        if (canCastleQueenside(board)) {
+            castlingMoves.add(new Position(row, 2));
+        }
+        
+        return castlingMoves;
+    }
+
+    /**
+     * Check if kingside castling is possible
+     */
+    private boolean canCastleKingside(ChessBoard board) {
+        int row = this.pos.getRow();
+        
+        // Check if rook is in position and hasn't moved
+        Piece rook = board.getPiece(new Position(row, 7));
+        if (rook == null || !(rook instanceof Rook) || rook.getHasMoved()) {
+            return false;
+        }
+        
+        // Check if squares between king and rook are empty
+        for (int col = 5; col <= 6; col++) {
+            if (board.getPiece(new Position(row, col)) != null) {
+                return false;
+            }
+        }
+        
+        return true;
+    }
+
+    /**
+     * Check if queenside castling is possible
+     */
+    private boolean canCastleQueenside(ChessBoard board) {
+        int row = this.pos.getRow();
+        
+        // Check if rook is in position and hasn't moved
+        Piece rook = board.getPiece(new Position(row, 0));
+        if (rook == null || !(rook instanceof Rook) || rook.getHasMoved()) {
+            return false;
+        }
+        
+        // Check if squares between king and rook are empty
+        for (int col = 1; col <= 3; col++) {
+            if (board.getPiece(new Position(row, col)) != null) {
+                return false;
+            }
+        }
+        
+        return true;
     }
 
     @Override
@@ -54,7 +127,7 @@ public class King extends Piece {
     @Override
     public King copy() {
         King newKing = new King(this.color, new Position(this.pos.getRow(), this.pos.getCol()));
-        newKing.hasMoved = this.hasMoved;
+        newKing.setHasMoved(this.hasMoved);
         return newKing;
     }
 }

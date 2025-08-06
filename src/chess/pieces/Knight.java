@@ -178,7 +178,7 @@ public class Knight extends Piece {
     @Override
     public Knight copy() {
         Knight newKnight = new Knight(this.color, new Position(this.pos.getRow(), this.pos.getCol()));
-        newKnight.hasMoved = this.hasMoved;
+        newKnight.setHasMoved(this.hasMoved);
         return newKnight;
     }
 }

@@ -48,4 +48,8 @@ public abstract class Piece {
     public boolean getHasMoved() {
         return this.hasMoved;
     }
+
+    public void setHasMoved(boolean hasMoved) {
+        this.hasMoved = hasMoved;
+    }
 }

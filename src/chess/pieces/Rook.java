@@ -92,7 +92,7 @@ public class Rook extends Piece {
     @Override
     public Rook copy() {
         Rook newRook = new Rook(this.color, new Position(this.pos.getRow(), this.pos.getCol()));
-        newRook.hasMoved = this.hasMoved;
+        newRook.setHasMoved(this.hasMoved);
         return newRook;
     }
 }
