@@ -77,13 +77,23 @@ Chess/
 1. **Clone/Download** the project
 2. **Compile** all Java files (from the project root):
     ```powershell
+    # Create bin directory if it doesn't exist
+    if (!(Test-Path "bin")) { New-Item -ItemType Directory -Path "bin" }
+    
+    # Compile all Java files
     cd .\src
-    javac -d ../bin chess\*.java chess\*\*.java
+    javac -d ..\bin chess\*.java chess\board\*.java chess\game\*.java chess\gui\*.java chess\pieces\*.java
     ```
 3. **Run** the game:
     ```powershell
-    cd ..
-    java -cp bin chess.Main
+    cd .\chess
+    java -cp bin Main.java
+    ```
+
+   **Alternative (Simpler)**: Use the provided PowerShell script:
+    ```powershell
+    cd .\src\chess
+    .\run.ps1
     ```
 
 ## Development Phases
