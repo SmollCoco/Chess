@@ -10,20 +10,25 @@ public class SquarePanel extends JPanel {
     private Square square;
     private boolean isHighlighted;
     private boolean isLegalMoveTarget;
+    private boolean isLastMove;
+    private boolean isInCheck;
     
     // Colors for chess board
-    private static final Color LIGHT_COLOR = new Color(240, 217, 181);
-    private static final Color DARK_COLOR = new Color(181, 136, 99);
-    private static final Color HIGHLIGHT_COLOR = new Color(255, 255, 0, 128); // Semi-transparent yellow
-    private static final Color LEGAL_MOVE_COLOR = new Color(0, 255, 0, 100); // Semi-transparent green
+    private static final Color LIGHT_COLOR = UIConstants.LIGHT_SQUARE;
+    private static final Color DARK_COLOR = UIConstants.DARK_SQUARE;
+    private static final Color HIGHLIGHT_COLOR = UIConstants.SELECT_HIGHLIGHT; // Semi-transparent yellow
+    private static final Color LEGAL_MOVE_COLOR = UIConstants.LEGAL_MOVE_FILL; // Semi-transparent green
     
     public SquarePanel(Square square) {
         this.square = square;
         this.isHighlighted = false;
         this.isLegalMoveTarget = false;
+        this.isLastMove = false;
+    this.isInCheck = false;
         
-        setPreferredSize(new Dimension(100, 100)); // Increased from 80x80 to 100x100
+    setPreferredSize(new Dimension(UIConstants.SQUARE_DEFAULT_SIZE, UIConstants.SQUARE_DEFAULT_SIZE));
         setOpaque(true);
+        setDoubleBuffered(true);
     }
     
     @Override
@@ -32,15 +37,15 @@ public class SquarePanel extends JPanel {
         if (getParent() != null) {
             Dimension parentSize = getParent().getSize();
             int size = Math.min(parentSize.width / 8, parentSize.height / 8);
-            size = Math.max(size, 50); // Minimum size
+            size = Math.max(size, UIConstants.SQUARE_MIN_SIZE); // Minimum size
             return new Dimension(size, size);
         }
-        return new Dimension(100, 100);
+        return new Dimension(UIConstants.SQUARE_DEFAULT_SIZE, UIConstants.SQUARE_DEFAULT_SIZE);
     }
     
     @Override
     public Dimension getMinimumSize() {
-        return new Dimension(50, 50);
+        return new Dimension(UIConstants.SQUARE_MIN_SIZE, UIConstants.SQUARE_MIN_SIZE);
     }
     
     @Override
@@ -63,6 +68,16 @@ public class SquarePanel extends JPanel {
         repaint();
     }
     
+    public void setLastMove(boolean isLast) {
+        this.isLastMove = isLast;
+        repaint();
+    }
+    
+    public void setInCheck(boolean inCheck) {
+        this.isInCheck = inCheck;
+        repaint();
+    }
+    
     @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
@@ -77,6 +92,22 @@ public class SquarePanel extends JPanel {
         g2d.setColor(backgroundColor);
         g2d.fillRect(0, 0, getWidth(), getHeight());
         
+        // Draw last-move highlight (subtle outline)
+        if (isLastMove) {
+            g2d.setColor(UIConstants.LAST_MOVE_BORDER);
+            g2d.setStroke(UIConstants.STROKE_MEDIUM);
+            g2d.drawRect(2, 2, getWidth() - 4, getHeight() - 4);
+        }
+
+        // Draw in-check overlay (soft red tint) for king's square
+        if (isInCheck) {
+            g2d.setColor(UIConstants.INCHECK_TINT);
+            g2d.fillRect(0, 0, getWidth(), getHeight());
+            g2d.setColor(UIConstants.INCHECK_BORDER);
+            g2d.setStroke(UIConstants.STROKE_MEDIUM);
+            g2d.drawRect(2, 2, getWidth() - 4, getHeight() - 4);
+        }
+
         // Draw highlight overlay if selected
         if (isHighlighted) {
             g2d.setColor(HIGHLIGHT_COLOR);
@@ -94,13 +125,13 @@ public class SquarePanel extends JPanel {
                 g2d.fillOval(x, y, circleSize, circleSize);
                 
                 // Add a darker border to the circle
-                g2d.setColor(new Color(0, 200, 0, 150));
-                g2d.setStroke(new BasicStroke(2));
+                g2d.setColor(UIConstants.LEGAL_MOVE_BORDER);
+                g2d.setStroke(UIConstants.STROKE_THIN);
                 g2d.drawOval(x, y, circleSize, circleSize);
             } else {
                 // Draw a thicker border around the square if it contains an opponent piece
-                g2d.setColor(new Color(255, 100, 100, 180)); // Red for capture
-                g2d.setStroke(new BasicStroke(6));
+                g2d.setColor(UIConstants.CAPTURE_BORDER); // Red for capture
+                g2d.setStroke(UIConstants.STROKE_THICK);
                 g2d.drawRect(3, 3, getWidth() - 6, getHeight() - 6);
             }
         }
@@ -115,8 +146,10 @@ public class SquarePanel extends JPanel {
     }
     
     private void drawPiece(Graphics2D g2d, Piece piece) {
-        // Try to load piece image first
-        ImageIcon pieceImage = ImageLoader.getPieceImage(piece.getPieceName(), piece.getColor());
+    // Try to load piece image first, scaled to square size with padding
+    int size = Math.min(getWidth(), getHeight());
+        int iconSize = Math.max(UIConstants.PIECE_ICON_MIN, (int)(size * UIConstants.PIECE_ICON_SCALE)); // leave a small margin
+    ImageIcon pieceImage = ImageLoader.getPieceImage(piece.getPieceName(), piece.getColor(), iconSize);
         if (pieceImage != null) {
             // Draw the image centered in the square
             int x = (getWidth() - pieceImage.getIconWidth()) / 2;
@@ -129,9 +162,8 @@ public class SquarePanel extends JPanel {
     }
     
     private void drawPieceSymbol(Graphics2D g2d, Piece piece) {
-        // Set improved font for piece symbols
-        Font pieceFont = new Font("DejaVu Sans", Font.BOLD, 60); // Increased size and improved font
-        g2d.setFont(pieceFont);
+    // Use cached font for piece symbols
+    g2d.setFont(PieceSymbolFontHolder.FONT);
         
         // Set color for piece text with better contrast and shadows
         g2d.setColor(Color.WHITE); // White outline/shadow
@@ -156,4 +188,9 @@ public class SquarePanel extends JPanel {
         g2d.setColor(Color.BLACK);
         g2d.drawString(symbol, x, y);
     }
+}
+
+// Lazy-loaded shared font holder to avoid per-paint allocations
+class PieceSymbolFontHolder {
+    static final Font FONT = new Font("DejaVu Sans", Font.BOLD, 60);
 }

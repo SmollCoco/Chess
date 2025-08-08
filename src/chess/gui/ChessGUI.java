@@ -73,6 +73,10 @@ public class ChessGUI extends JFrame {
     private void createPanels() {
         // Create board panel (center) with reduced padding and centering
         boardPanel = new BoardPanel(chessGame);
+    // Warm image cache for the likely square size to minimize first-paint lag
+    int squareSize = Math.max(UIConstants.SQUARE_MIN_SIZE,
+        (int) Math.round(UIConstants.SQUARE_DEFAULT_SIZE * UIConstants.PIECE_ICON_SCALE));
+    ImageLoader.warmCache(squareSize);
         
         // Create a container that centers the board and maintains square shape
         JPanel boardContainer = new JPanel();

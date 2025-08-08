@@ -1,5 +1,11 @@
 package game;
 
+/**
+ * GameState holds turn, status, move count, and last move.
+ * - Status reflects PLAYING, CHECK, CHECKMATE, STALEMATE, or DRAW.
+ * - lastMoveFrom/To are used for last-move highlights and en passant detection.
+ */
+
 import pieces.PieceColor;
 import board.Position;
 
@@ -87,5 +93,22 @@ public class GameState {
             return "Game is running. White is in check";
         }
         return "Game is running.";
+    }
+
+    /**
+     * Creates a deep copy of the current GameState, including last move positions.
+     */
+    public GameState copy() {
+        GameState gs = new GameState();
+        gs.currPlayer = this.currPlayer; // enum copy
+        gs.gameStatus = this.gameStatus; // enum copy
+        gs.moveCount = this.moveCount;
+        if (this.lastMoveFrom != null) {
+            gs.lastMoveFrom = new Position(this.lastMoveFrom.getRow(), this.lastMoveFrom.getCol());
+        }
+        if (this.lastMoveTo != null) {
+            gs.lastMoveTo = new Position(this.lastMoveTo.getRow(), this.lastMoveTo.getCol());
+        }
+        return gs;
     }
 }

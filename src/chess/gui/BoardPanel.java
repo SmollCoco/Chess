@@ -9,6 +9,11 @@ import java.util.List;
 
 import game.ChessGame;
 import game.MoveValidator;
+import game.GameState;
+import pieces.Piece;
+import pieces.PieceColor;
+import pieces.Pawn;
+import pieces.Queen;
 import board.Position;
 
 public class BoardPanel extends JPanel {
@@ -23,8 +28,8 @@ public class BoardPanel extends JPanel {
         this.legalMoves = new ArrayList<>();
         
         // Set up the panel
-        setLayout(new GridLayout(8, 8));
-        setPreferredSize(new Dimension(800, 800)); // Increased from 640x640 to 800x800
+    setLayout(new GridLayout(8, 8));
+    setPreferredSize(new Dimension(UIConstants.BOARD_PREFERRED_SIZE, UIConstants.BOARD_PREFERRED_SIZE));
         
         // Create the square panels
         createSquarePanels();
@@ -108,8 +113,8 @@ public class BoardPanel extends JPanel {
             // Clicking same square - deselect
             deselectPiece();
         } else {
-            // Try to make the move
-            boolean moveSuccessful = chessGame.makeMove(selectedPosition, position);
+            // Try to make the move (with promotion dialog if needed)
+            boolean moveSuccessful = attemptMoveWithPromotion(selectedPosition, position);
             
             if (moveSuccessful) {
                 // Move was successful - update display
@@ -128,6 +133,33 @@ public class BoardPanel extends JPanel {
                 deselectPiece();
             }
         }
+    }
+
+    private boolean attemptMoveWithPromotion(Position from, Position to) {
+        // If this is a pawn moving to the last rank, prompt for promotion piece
+        Piece moving = chessGame.getBoard().getPiece(from);
+        Class<? extends Piece> promotionType = null;
+        if (moving instanceof Pawn) {
+            int targetRow = to.getRow();
+            int promotionRow = moving.getColor() == PieceColor.WHITE ? 0 : 7;
+            if (targetRow == promotionRow) {
+                promotionType = promptPromotionPiece();
+                if (promotionType == null) {
+                    promotionType = Queen.class; // default fallback
+                }
+            }
+        }
+
+        return chessGame.makeMove(from, to, promotionType);
+    }
+
+    private Class<? extends Piece> promptPromotionPiece() {
+        Piece moving = chessGame.getBoard().getPiece(selectedPosition);
+        PieceColor color = moving != null ? moving.getColor() : PieceColor.WHITE;
+        Window owner = SwingUtilities.getWindowAncestor(this);
+        PromotionDialog dialog = new PromotionDialog(owner, color);
+        Class<? extends Piece> chosen = dialog.choose();
+        return chosen != null ? chosen : Queen.class;
     }
     
     private void deselectPiece() {
@@ -150,16 +182,41 @@ public class BoardPanel extends JPanel {
     }
     
     public void refreshBoard() {
+        // Optional: warm icon cache for current square size once per session
+        int width = getWidth() / 8;
+        if (width > 0) {
+            int iconSize = Math.max(UIConstants.PIECE_ICON_MIN, (int) Math.floor(width * UIConstants.PIECE_ICON_SCALE));
+            ImageLoader.warmCache(iconSize);
+        }
         // Update all square panels to reflect current board state
         for (int row = 0; row < 8; row++) {
             for (int col = 0; col < 8; col++) {
                 squarePanels[row][col].setSquare(chessGame.getBoard().getSquare(row, col));
                 squarePanels[row][col].setHighlighted(false); // Clear highlights
                 squarePanels[row][col].setLegalMoveTarget(false); // Clear legal move indicators
+                squarePanels[row][col].setLastMove(false);
+                squarePanels[row][col].setInCheck(false);
             }
         }
-        selectedPosition = null;
-        legalMoves.clear();
-        repaint();
+        // Highlight last move if available
+        GameState state = chessGame.getGameState();
+        if (state.getLastMoveFrom() != null && state.getLastMoveTo() != null) {
+            Position from = state.getLastMoveFrom();
+            Position to = state.getLastMoveTo();
+            squarePanels[from.getRow()][from.getCol()].setLastMove(true);
+            squarePanels[to.getRow()][to.getCol()].setLastMove(true);
+        }
+        // Highlight the king in check
+        if (state.getStatus() == GameState.Status.CHECK || state.getStatus() == GameState.Status.CHECKMATE) {
+            PieceColor checkedColor = state.getCurrentPlayer();
+            Piece king = chessGame.getBoard().getKing(checkedColor);
+            if (king != null && king.getPosition() != null) {
+                Position kp = king.getPosition();
+                squarePanels[kp.getRow()][kp.getCol()].setInCheck(true);
+            }
+        }
+    selectedPosition = null;
+    legalMoves.clear();
+    repaint();
     }
 }

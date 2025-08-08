@@ -1,5 +1,16 @@
 package game;
 
+/**
+ * MoveValidator centralizes chess rules validation.
+ * Contracts:
+ * - isValidMove: verifies piece ownership, move legality (including en passant/castling), and that own king is not left in check.
+ * - getLegalMoves: returns only moves that do not expose own king to check.
+ * - isKingInCheck / isCheckmate / isStalemate: board-state evaluations without mutating original board.
+ * Notes:
+ * - Uses board.copy() to simulate moves safely.
+ * - Castling validated for rook/king unmoved, empty path, and not moving through/into check.
+ */
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -9,6 +20,7 @@ import pieces.Piece;
 import pieces.PieceColor;
 import pieces.King;
 import pieces.Pawn;
+import pieces.Rook;
 
 public class MoveValidator {
     
@@ -83,11 +95,37 @@ public class MoveValidator {
      * Validate castling move
      */
     private static boolean isValidCastling(ChessBoard board, Position from, Position to, King king) {
+        // King must not have moved
+        if (king.getHasMoved()) {
+            return false;
+        }
+
         // King must not be in check
         if (isKingInCheck(board, king.getColor())) {
             return false;
         }
-        
+
+        // Determine side and rook positions
+        boolean isKingside = to.getCol() > from.getCol();
+        int row = from.getRow();
+        int rookCol = isKingside ? 7 : 0;
+        Position rookPos = new Position(row, rookCol);
+
+        // Rook must exist, be a Rook, same color, and not have moved
+        Piece rook = board.getPiece(rookPos);
+        if (rook == null || !(rook instanceof Rook) || rook.getColor() != king.getColor() || rook.getHasMoved()) {
+            return false;
+        }
+
+        // Squares between king and rook must be empty
+        int startCol = Math.min(from.getCol(), rookCol) + 1;
+        int endCol = Math.max(from.getCol(), rookCol) - 1;
+        for (int c = startCol; c <= endCol; c++) {
+            if (board.getPiece(new Position(row, c)) != null) {
+                return false;
+            }
+        }
+
         // King cannot pass through check or end up in check
         int step = to.getCol() > from.getCol() ? 1 : -1;
         int currentCol = from.getCol();

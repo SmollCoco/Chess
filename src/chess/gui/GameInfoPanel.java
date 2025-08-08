@@ -12,6 +12,9 @@ public class GameInfoPanel extends JPanel {
     private JLabel statusLabel;
     private JLabel turnLabel;
     private JLabel moveLabel;
+    private DefaultListModel<String> moveListModel;
+    private JList<String> moveList;
+    private JButton undoButton;
     
     public GameInfoPanel(ChessGame chessGame) {
         this.chessGame = chessGame;
@@ -66,6 +69,36 @@ public class GameInfoPanel extends JPanel {
         moveLabel.setFont(labelFont);
         moveLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
         add(moveLabel);
+        add(Box.createVerticalStrut(10));
+
+        // Undo button
+        undoButton = new JButton("Undo");
+        undoButton.setAlignmentX(Component.LEFT_ALIGNMENT);
+        undoButton.addActionListener(e -> {
+            if (chessGame.undoLastMove()) {
+                // Refresh the main UI on EDT
+                SwingUtilities.invokeLater(() -> {
+                    Container top = SwingUtilities.getWindowAncestor(this);
+                    if (top instanceof ChessGUI) {
+                        ((ChessGUI) top).updateDisplay();
+                    } else {
+                        // Fallback: refresh this panel directly
+                        updateDisplay();
+                    }
+                });
+            }
+        });
+        add(undoButton);
+        add(Box.createVerticalStrut(10));
+
+    // Move list
+    moveListModel = new DefaultListModel<>();
+    moveList = new JList<>(moveListModel);
+    moveList.setVisibleRowCount(12);
+    moveList.setFont(new Font("Consolas", Font.PLAIN, 12));
+    JScrollPane scroll = new JScrollPane(moveList);
+    scroll.setAlignmentX(Component.LEFT_ALIGNMENT);
+    add(scroll);
         // Add flexible space at bottom
         add(Box.createVerticalGlue());
     }
@@ -73,16 +106,28 @@ public class GameInfoPanel extends JPanel {
     public void updateDisplay() {
         GameState gameState = chessGame.getGameState();
         // Update status with color coding
-        String statusText = "Status: " + getStatusMessage(gameState);
+    String statusText = "Status: " + getStatusMessage(gameState);
         statusLabel.setText(statusText);
         statusLabel.setForeground(getStatusColor(gameState));
         // Update turn
-        String currentPlayer = gameState.getCurrentPlayer().toString();
-        turnLabel.setText("Turn: " + currentPlayer);
+    String currentPlayer = gameState.getCurrentPlayer().toString();
+    turnLabel.setText("Turn: " + currentPlayer);
         turnLabel.setForeground(Color.BLACK);
         // Update move count
         moveLabel.setText("Move: " + gameState.getMoveCount());
         moveLabel.setForeground(Color.BLACK);
+        // Update move history (paired with move numbers)
+        moveListModel.clear();
+        for (String line : chessGame.getPairedMoveHistory()) {
+            moveListModel.addElement(line);
+        }
+        if (!moveListModel.isEmpty()) {
+            moveList.ensureIndexIsVisible(moveListModel.size() - 1);
+        }
+        // Enable/disable undo button
+        if (undoButton != null) {
+            undoButton.setEnabled(chessGame.canUndo());
+        }
         repaint();
     }
     

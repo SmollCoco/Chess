@@ -1,29 +1,28 @@
 
 # Java Chess Game with Modern GUI
 
-A fully-featured chess game in Java using Swing, with a modern, resizable interface and visual move highlighting.
+A polished Java Swing chess game with a resizable, high‑DPI friendly UI, clear move feedback, and complete rules including castling, en passant, and promotion.
 
 
 ## Features
 
--   Complete chess game with all standard rules
--   Modern, resizable graphical user interface
--   Move validation and legal move detection
--   Check and checkmate detection
--   Visual feedback for piece selection and all legal moves (highlighted on board)
--   Turn-based gameplay for two players
--   Game state management
--   Board always stays perfectly square, even when window is resized
--   Improved piece and label styling for a professional look
--   Chess piece icons (PNG images) with automatic fallback to Unicode symbols
--   Smart image loading and caching system
+- Complete chess rules: legal move enforcement, check, checkmate, stalemate
+- Special moves: castling (fully validated), en passant, and promotion
+- Promotion dialog: choose Queen/Rook/Bishop/Knight on reaching last rank
+- Clear visuals: selected square, legal moves, last move, in‑check king highlight
+- Move list in standard SAN notation (paired by move number)
+- Undo last move from the Game Information panel
+- Modern, resizable board that stays perfectly square; HiDPI friendly
+- Smooth rendering with double buffering and size‑aware piece icon caching
+- PNG icons loaded from classpath with graceful Unicode fallback
+- Clean structure and comments around validation and game state
 
 ## Requirements
 
--   Java 8 or higher
--   No external dependencies (uses built-in Swing library)
+- Java 8 or higher
+- Windows PowerShell (for the provided `run.ps1`) — or run manually
 
-## Project Structure
+## Project Structure (key files)
 
 ```
 Chess/
@@ -52,7 +51,8 @@ Chess/
 │           ├── BoardPanel.java       # Chess board visual component
 │           ├── SquarePanel.java      # Individual square component
 │           ├── GameInfoPanel.java    # Game status display
-│           └── ImageLoader.java      # Chess piece image loader
+│           ├── ImageLoader.java      # Piece image loader (classpath PNGs)
+│           └── UIConstants.java      # Centralized UI colors/sizes
 │       └── resources/
 │           └── images/               # Chess piece icons (PNG format)
 │               ├── white_king.png    # White king piece icon
@@ -74,26 +74,46 @@ Chess/
 
 ## Getting Started
 
-1. **Clone/Download** the project
-2. **Compile** all Java files (from the project root):
-    ```powershell
-    # Create bin directory if it doesn't exist
-    if (!(Test-Path "bin")) { New-Item -ItemType Directory -Path "bin" }
-    
-    # Compile all Java files
-    cd .\src
-    javac -d ..\bin chess\*.java chess\board\*.java chess\game\*.java chess\gui\*.java chess\pieces\*.java
-    ```
-3. **Run** the game:
-    ```powershell
-    cd .\chess
-    java -cp bin Main.java
-    ```
+1) From project root, use the provided PowerShell script (recommended):
 
-   **Alternative (Simpler)**: Use the provided PowerShell script:
-    ```powershell
-    .\run.ps1
-    ```
+```powershell
+./run.ps1
+```
+
+- Compiles sources into `bin/` and launches the app.
+- Ensures classpath includes resources under `src/chess/resources`.
+
+2) Optional: Compile without running
+
+```powershell
+./run.ps1 -NoRun
+```
+
+3) Optional: Manual compile/run (if you don’t want to use the script)
+
+```powershell
+# Compile (from project root)
+if (!(Test-Path "bin")) { New-Item -ItemType Directory -Path "bin" | Out-Null }
+javac -encoding UTF-8 -d bin `
+    src\chess\Main.java `
+    src\chess\board\*.java `
+    src\chess\game\*.java `
+    src\chess\gui\*.java `
+    src\chess\pieces\*.java
+
+# Run (ensure resources are on classpath)
+java -cp "bin;src\chess" Main
+```
+
+Note: The code uses package-less `Main` and top-level packages (`board`, `game`, `gui`, `pieces`) as currently structured.
+
+## Controls
+
+- Click a piece (current player) to select; legal moves will be highlighted.
+- Click a highlighted square to move. Click the selected square again to deselect.
+- On pawn reaching last rank, choose the promotion piece in the dialog (Esc/close defaults to Queen).
+- Undo: Click the Undo button in the Game Information panel to revert the last move.
+- New Game: via Game menu.
 
 ## Development Phases
 
@@ -116,9 +136,16 @@ The implementation is broken down into manageable phases:
 -   **Event-Driven GUI**: Responsive Swing-based interface
 -   **Visual Move Highlighting**: All legal moves for a selected piece are shown on the board
 -   **Resizable, Modern UI**: Board and info panel scale with the window, always keeping the board square
--   **Robust Move Validation**: Comprehensive rule checking including special moves
--   **Smart Image System**: Automatic loading of chess piece PNG icons with graceful fallback to Unicode symbols
--   **Performance Optimized**: Image caching and efficient board rendering
+-   **Robust Move Validation**: Comprehensive rule checking including special moves; castling rules verified (king/rook unmoved, clear path, not through/into check)
+-   **Smart Image System**: Classpath PNG loading with size‑aware caching for sharp rendering at any square size; Unicode fallback
+-   **Performance Optimized**: Double buffering and targeted repaints
+
+## Troubleshooting
+
+- Images not showing: run via `./run.ps1` so `src\chess` (resources) is on the classpath.
+- Script blocked: start PowerShell as Administrator or use `Set-ExecutionPolicy -Scope Process Bypass` for the session.
+- Window is blurry on HiDPI: ensure Java scaling settings are default; icons are scaled smoothly and should be crisp.
+- App won’t start: verify Java 8+ is installed (`java -version`).
 
 
 ## License
